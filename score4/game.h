@@ -1,0 +1,1 @@
+void update_zobrist_hash(int idx, int player);
