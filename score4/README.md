@@ -1,7 +1,7 @@
 # 最強の立体四目並べAIを作ろう
 
 ## はじめに
-詳しい解説は以下のnoteに掲載します。  
+現状、世の中で最も強い立体四目並べAIを作ることができました。詳しい解説は以下のnoteに掲載します。  
 https://note.com/qweral/  
 
 なお、本AIで使用した評価関数は一部retsu27様のコードを参考にしました(以下リンク)。  
@@ -18,6 +18,12 @@ ID_LIKE=debian
 PRETTY_NAME="Ubuntu 20.04.6 LTS"
 VERSION_ID="20.04"
 HOME_URL="https://www.ubuntu.com/"
+
+>> g++ --version
+g++ (Ubuntu 9.4.0-1ubuntu1~20.04.2) 9.4.0
+Copyright (C) 2019 Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 ```
 
 ## 遊び方
@@ -107,7 +113,7 @@ X O . X
 - 棋譜自動保存機能  
   勝敗のついた対局(引き分け含む)は試合終了後に自動でcsvファイルに保存されます。
 - 棋譜解析コード  
-  kifuディレクトリにkifu.pyを入れてあります。自動保存した棋譜はもちろん、自分で棋譜を入力し、棋譜同士の関係を樹形図で見たりできます。以下簡単な手引です。
+  kifuディレクトリ下にkifu.pyが入っています。自動保存した棋譜はもちろん、自分で棋譜を入力し、棋譜同士の関係を樹形図で見たりできます。以下簡単な手引です。
   - 「数字」: 棋譜を入力  
     座標を3桁の数字で表した、「xyz」という3桁の整数を入れてください。
     座標はpythonコードで使用される盤面のとおりです。  
