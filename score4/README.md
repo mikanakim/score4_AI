@@ -4,7 +4,7 @@
 詳しい解説は以下のnoteに掲載します。  
 https://note.com/qweral/  
 
-なお、本AIで使用した評価関数は一部retsu27様のコードを参考にしました(以下リンク)。
+なお、本AIで使用した評価関数は一部retsu27様のコードを参考にしました(以下リンク)。  
 https://retu27.com/scorefour_cpu_nosupport.html
 
 ## 動作環境
