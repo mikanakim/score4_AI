@@ -254,8 +254,7 @@ int main(){
                 if (is_win(teban^1)) {
                     printBoard(0);
                     cout << "Player " << (teban^1) << " wins!" << endl;
-                    if (!ai_sente){// AIが先手のとき
-                    // if (__builtin_popcountll(allMoves) % 2 == 0){//後手番で終了
+                    if (!ai_sente){
                         save_kifu(1);
                     }else{
                         save_kifu(0);
@@ -266,8 +265,7 @@ int main(){
                 if (is_win(teban^1)) {
                     printBoard(0);
                     cout << "Player " << (teban^1) << " wins!" << endl;
-                    // if (__builtin_popcountll(allMoves) % 2 == 0){//後手番で終了
-                    if (ai_sente){// AIが先手のとき
+                    if (ai_sente){
                         save_kifu(1);
                     }else{
                         save_kifu(0);
