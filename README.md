@@ -2,7 +2,7 @@
 
 ## はじめに
 現状、世の中で最も強い立体四目並べAIを作ることができました。詳しい解説は以下のnoteに掲載します。  
-https://note.com/qweral/  
+https://note.com/qweral/m/mabfb360417ab 
 
 なお、本AIで使用した評価関数は一部retsu27様のコードを参考にしました(以下リンク)。  
 https://retu27.com/scorefour_cpu_nosupport.html
