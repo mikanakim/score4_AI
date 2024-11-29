@@ -254,22 +254,14 @@ int main(){
                 if (is_win(teban^1)) {
                     printBoard(0);
                     cout << "Player " << (teban^1) << " wins!" << endl;
-                    if (!ai_sente){
-                        save_kifu(1);
-                    }else{
-                        save_kifu(0);
-                    }
+                    save_kifu(0);
                     break;
                 }
             } else {
                 if (is_win(teban^1)) {
                     printBoard(0);
                     cout << "Player " << (teban^1) << " wins!" << endl;
-                    if (ai_sente){
-                        save_kifu(1);
-                    }else{
-                        save_kifu(0);
-                    }
+                    save_kifu(1);
                     break;
                 }
             }
