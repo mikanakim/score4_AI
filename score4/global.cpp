@@ -5,7 +5,11 @@
 int teban = 0;              //現在の手番
 uint64_t allMoves = 0;      // 全盤面情報
 vector<int> kifu = {};      // 棋譜
+vector<int> kifu_for_book(64, 0);
 vector<uint64_t> playerBoard = {0, 0};  // 64bitで盤面を表現するbitboard
+vector<uint64_t> kst = {0, 0};  // 決勝点の絶対座標を管理するbit
+vector<vector<uint64_t>> kst_history = {};
+map<vector<int>, OpeningMove> openingBook;
 
 // alpha beta探索
 int comp_search = 26;      // 終盤に何手完全読みするか

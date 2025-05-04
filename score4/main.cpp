@@ -4,6 +4,7 @@
 #include <bitset>
 #include <random>
 #include <algorithm>
+#include <cstdlib>
 #include "main.h"
 #include "global.h"
 #include "hash.h"
@@ -12,6 +13,13 @@
 using namespace std;
 
 string save_filename = "./kifu/kifu.csv";
+string opening_book_filename = "./kifu/opening_book_with_human_made_book.csv";
+
+// pythonコードを動かす
+void runPythonScript(const std::string& script, const std::string& args) {
+    std::string command = "python3 " + script + " --slist " + args;
+    std::system(command.c_str());
+}
 
 void save_kifu(int winner) {
     // ファイルを読み込むためのストリーム
@@ -31,31 +39,30 @@ void save_kifu(int winner) {
 
     // 現在の棋譜を1つの文字列として作成
     std::ostringstream current_kifu;
+    std::ostringstream python_args_kifu;
     for (int i = 0, n = kifu.size(); i < n; ++i) {
         current_kifu << kifu[i] << ",";
+        python_args_kifu << kifu[i] << " ";
     }
     if (winner == 0) {
         current_kifu << "w";
+        python_args_kifu << "w";
     } else if (winner == 1) {
         current_kifu << "l";
+        python_args_kifu << "l";
     } else if (winner == 2){
         current_kifu << "d";
+        python_args_kifu << "d";
     }
 
-    // 現在の棋譜が既存の棋譜リストに含まれるかを確認
-    std::string current_kifu_str = current_kifu.str();
-    if (std::find(existing_kifu.begin(), existing_kifu.end(), current_kifu_str) != existing_kifu.end()) {
-        std::cout << "同じ棋譜が既に存在します。保存をスキップします。" << std::endl;
-        return;
-    }
+    cout << python_args_kifu.str() << endl;
 
-    // 新しい棋譜を追記
-    std::ofstream outfile(save_filename, std::ios::app);  // ファイルを追記モードで開く
-    if (outfile.is_open()) {
-        outfile << current_kifu_str << "\n";
-        outfile.close();
-    } else {
-        std::cerr << "ファイルを開けませんでした: " << save_filename << std::endl;
+    string save_or_not = "n";
+    cout << "棋譜を保存する: y/n" << endl;
+    cin >> save_or_not;
+    // save_or_not = "y";
+    if (save_or_not == "y"){
+        runPythonScript("./kifu/auto_analysis_kifu.py", python_args_kifu.str());
     }
 }
 
@@ -79,11 +86,11 @@ void input_prekifu(){
     }
     for (int i=0, n=pre_kifu.size(); i<n; ++i){
         move(teban, pre_kifu[i]&0x0000000F);
-        kifu_input(pre_kifu[i]);
+        kifu_input(pre_kifu[i]&0x0000000F);
         kifu_output();
     }
     cout << "Eval: " << line_evaluation(teban) << endl;
-    cout << "stev: " << game_logic_evaluation(teban) << endl;
+    cout << "stev: " << game_logic_evaluation(teban, 0) << endl;
 }
 
 int main(){
@@ -127,6 +134,11 @@ int main(){
     // 探索の深さを指定する
     if (vs == 2){
         depth_input = depth;
+        if (teban == 0){
+            ai_sente = true;
+        }else{
+            ai_sente = false;
+        }
     }else{
         cout << "depthを入力。defaultは7" << endl;
         cin >> depth_input;
@@ -147,6 +159,9 @@ int main(){
     // 事前に棋譜がある場合は入力
     input_prekifu();
 
+    // 定石をロード
+    loadOpeningBook(opening_book_filename);
+
     // gameスタート
     int count = 0;
     while (count < game_count){
@@ -160,6 +175,7 @@ int main(){
             kifu = {};
             depth = depth_input;
             transposition_table.clear();
+            kifu_for_book.clear();
         }
         while (true){
             printBoard(0);
@@ -172,7 +188,7 @@ int main(){
             int l_action = legal_actions();
 
             // n手目以降で連鎖検出をする。バグ対策でもあるので変更しない。
-            if (__builtin_popcountll(allMoves) >= 8){
+            if (__builtin_popcountll(allMoves) >= 8){// 普通は8
                 rensa_start = true;
             }
 
@@ -199,16 +215,16 @@ int main(){
                 // 探索の深さと上限時間
                 if (6 < tesu && tesu <= 30){
                     depth = depth_input+2;
-                    time_limit = 120000;
+                    time_limit = 90000;
                 } else if (30  < tesu && tesu <= 64-comp_search){
                     depth = depth_input+4;
-                    time_limit = 180000;
+                    time_limit = 90000;
                 } else if (64-comp_search < tesu){
-                    time_limit = 180000;
+                    time_limit = 90000;
                     if (tesu%2 == 0) depth = 64-tesu;
                     else if (tesu%2 == 1) depth = 64-(tesu-1);
                 }
-                BestPlayer(teban, depth);
+                BestPlayer(teban, depth, true);
             }
 
             // AI vs Human
@@ -222,16 +238,16 @@ int main(){
                     // 探索の深さと上限時間
                     if (6 < tesu && tesu <= 24){
                         depth = depth_input+2;
-                        time_limit = 120000;
+                        time_limit = 60000;
                     } else if (24  < tesu && tesu < 64-comp_search){
                         depth = depth_input+4;
-                        time_limit = 90000;
+                        time_limit = 60000;
                     } else if (64-comp_search <= tesu){
-                        time_limit = 90000;
+                        time_limit = 60000;
                         if (tesu%2 == 0) depth = 64-tesu;
                         else if (tesu%2 == 1) depth = 64-(tesu-1);
                     } 
-                    BestPlayer(teban, depth);
+                    BestPlayer(teban, depth, true);
                 }
             }
 
@@ -245,7 +261,7 @@ int main(){
                     cin >> depth;
                     int tesu = __builtin_popcountll(allMoves);
                     int remain = __builtin_popcountll(legal_actions());
-                    BestPlayer(teban, depth);
+                    BestPlayer(teban, depth, false);
                 }
             }
 
@@ -254,14 +270,22 @@ int main(){
                 if (is_win(teban^1)) {
                     printBoard(0);
                     cout << "Player " << (teban^1) << " wins!" << endl;
-                    save_kifu(0);
+                    if (!ai_sente){
+                        save_kifu(1);
+                    }else{
+                        save_kifu(0);
+                    }
                     break;
                 }
             } else {
                 if (is_win(teban^1)) {
                     printBoard(0);
                     cout << "Player " << (teban^1) << " wins!" << endl;
-                    save_kifu(1);
+                    if (ai_sente){
+                        save_kifu(1);
+                    }else{
+                        save_kifu(0);
+                    }
                     break;
                 }
             }
@@ -276,6 +300,8 @@ int main(){
         }
         count += 1;
     }
+    transposition_table.clear();
+    kifu_for_book.clear();
     return 0;
 }
 

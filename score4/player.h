@@ -12,7 +12,7 @@ void kifu_output();
 
 // evaluation.cpp
 double line_evaluation(int player);
-double game_logic_evaluation(int player);
+double game_logic_evaluation(int player, int depth);
 
 
 // alpha_beta.cpp

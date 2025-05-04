@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <cstdint>
 
 using namespace std;
 #ifndef alphabeta_H  // インクルードガードの開始
@@ -9,6 +10,8 @@ struct Order_and_BestAction {
     int best;
     vector<pair<int, int>> order;
 };
+
+int result_time_over;
 
 // time.cpp
 bool is_time_over();
@@ -27,7 +30,7 @@ void kifu_output();
 // evaluation.cpp
 int potential_4_line(int player, int idx);
 double line_evaluation(int player);
-double game_logic_evaluation(int player);
+double game_logic_evaluation(int player, int depth);
 
 // hash.cpp
 void save_hash(double alpha, double beta, double original_alpha, int depth);

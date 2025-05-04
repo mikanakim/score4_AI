@@ -2,10 +2,11 @@ import copy
 import game
 import csv
 from pack_for_kifu import *
+import os
 
 state = game.State()
 replay_state = game.State()
-file_path = './kifu.csv'
+file_path = './kifu/kifu.csv'
 
 # csvファイル
 with open(file_path) as f:
@@ -361,25 +362,7 @@ while True:
             
     #保存して終了          
     elif letter1 == 'save':
-        if len(new) > 0:
-            new_list = copy.deepcopy(new)
-            if 'w' in new or 'd' in new or 'l' in new:
-                del new_list[-1]
-            check_kifu = []
-            for i, sublist in enumerate(copy.deepcopy(kifu)):
-                if 'w' in sublist or 'd' in sublist or 'l' in sublist:
-                    del sublist[-1]
-                    check_kifu.append(sublist)
-                else:
-                    check_kifu.append(sublist)
-            # 重複してなければ追加
-            if new_list not in check_kifu:
-                kifu.append(new)
-                kifu = sorted(kifu, key=len)
-        
-        # with open(file_path, mode='wb') as fo:
-        #     pickle.dump(kifu, fo)
-        with open(file_path, 'w') as f:
-            writer = csv.writer(f)
-            writer.writerows(kifu)
+        new = [str(new[i]) for i in range(len(new))]
+        args = ' '.join(new)
+        os.system("python3 ./kifu/auto_analysis_kifu.py --slist " + args)
         break

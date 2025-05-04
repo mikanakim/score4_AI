@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <bitset>
 #include "masks.h"
 #include "alpha_beta.h"
 #include "time.h"
@@ -41,6 +42,7 @@ double alpha_beta(int player, int idx, double alpha, double beta, int depth, int
 
     //  リーチがあるとき
     if (reach_aru && rensa_start){
+    // if (reach_aru){
         uint64_t reach_player = reach_detector(player);
         uint64_t reach_opp = reach_detector(opp);
 
@@ -51,6 +53,10 @@ double alpha_beta(int player, int idx, double alpha, double beta, int depth, int
 
         // 相手のリーチのときは防御
         else if (reach_opp != 0){
+            // ダブルリーチ含めて負け確定のときはここで検出
+            if (game_logic_evaluation(player, 1) < -9000){
+                return -10000 - __builtin_popcountll((~allMoves));//win
+            }
             int i = 63 - __builtin_clzll(reach_opp);
             i &= 0x0000000F;
             move(player, i);
@@ -122,12 +128,12 @@ double alpha_beta(int player, int idx, double alpha, double beta, int depth, int
         if (game_start) co_value += potential_4_line(opp, idx&0x0000000F) * minus;
 
         // 連鎖検出の時間短縮
-        if (depth <= 0) l_action = reach_of_reach(opp);
+        if (depth <= 0) l_action = reach_of_reach(player);
 
         if (((depth <= 0) && (!rensa_flag)) || __builtin_popcountll(l_action) == 0){
             if (game_start) return -co_value;//最初数手は定石打ち
-
-            return - line_evaluation(opp) - game_logic_evaluation(opp);
+            return - line_evaluation(opp) - game_logic_evaluation(opp, depth);
+            // return - line_evaluation(opp) - game_logic_evaluation1(opp, depth);
         }
 
         // move orderingの準備
@@ -135,7 +141,7 @@ double alpha_beta(int player, int idx, double alpha, double beta, int depth, int
         for (int k = 0; k < 16; ++k) {
             if (l_action & (0b00000000000000010000000000000000 << k)) {
                 move(player, k);
-                moves.push_back({k, line_evaluation(player) + game_logic_evaluation(player)});
+                moves.push_back({k, line_evaluation(player) + game_logic_evaluation(player, depth)});
                 unmove(player, k);
             }
         }
@@ -145,7 +151,7 @@ double alpha_beta(int player, int idx, double alpha, double beta, int depth, int
             return a.second > b.second;
         });
 
-        // リーチがないときのの探索
+        // リーチがないときの探索
         for (auto& m : moves) {
             int i = m.first;
             i &= 0x0000000F;
@@ -220,7 +226,7 @@ Order_and_BestAction alpha_beta_next_action(int player, int depth, Order_and_Bes
         for (int i = 0; i < 16; ++i) {
             if (l_action & (0b00000000000000010000000000000000 << i)) {
                 move(player, i);
-                int moveScore = line_evaluation(player) + game_logic_evaluation(player);
+                int moveScore = line_evaluation(player) + game_logic_evaluation(player, depth);
                 unmove(player, i&0x0000000F);
 
                 moves.push_back({i, moveScore});
@@ -268,6 +274,7 @@ Order_and_BestAction alpha_beta_next_action(int player, int depth, Order_and_Bes
 
         if (is_time_over()) {
             time_over = true;
+            result;
             break;  // 時間切れなのでループを抜ける
         }       
 
@@ -279,6 +286,9 @@ Order_and_BestAction alpha_beta_next_action(int player, int depth, Order_and_Bes
             std::sort(bestLine.begin(), bestLine.end(), [](const std::pair<int, int>& a, const std::pair<int, int>& b) {
                 return a.second > b.second;
             });
+
+            result_time_over = bestLine[0].first;
+
             cout << " >> ";
             for (auto& move : bestLine) {
                 cout << move.first << " ";
@@ -287,7 +297,7 @@ Order_and_BestAction alpha_beta_next_action(int player, int depth, Order_and_Bes
         }
         else{
             cout << endl;
-        }
+        } 
        
         bestLine = {};
     }
@@ -306,7 +316,10 @@ Order_and_BestAction alpha_beta_next_action(int player, int depth, Order_and_Bes
     for (int i=0, n=score_list.size(); i<n; ++i){
         moves[i].second = score_list[i];
     }
+
     result.order = moves;
+
+    if (time_over) result.best = result_time_over;
 
     return result;
 }
@@ -325,7 +338,12 @@ int iterative_deepening(int player, int max_depth) {
     Order_and_BestAction ob = {0, {}};
     start_time = steady_clock::now();  // 探索開始時刻を記録
 
-    if (__builtin_popcountll(allMoves) >= 0){// n手まではランダムに行動する。
+    // 1ターンごとにhash表をクリアする。
+    cout << "hash tableを初期化中" << endl;
+    transposition_table.clear();
+    cout << "hash tableの初期化完了" << endl;
+
+    if (0 <= __builtin_popcountll(allMoves)){// m手以上n手以下はランダムに行動する。
         for (int depth = 0; depth < max_depth; depth+=2) {
             ob = alpha_beta_next_action(player, depth, ob);
             best_action = ob.best;
@@ -333,6 +351,7 @@ int iterative_deepening(int player, int max_depth) {
             // 時間切れで探索終了
             if (is_time_over() || time_over) {
                 time_over = false;
+                best_list.push_back(best_action);
                 break;
             }
             best_list.push_back(best_action);
